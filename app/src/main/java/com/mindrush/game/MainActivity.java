@@ -291,7 +291,6 @@ void playAnswerSound(boolean correct) {
                     this,
                     correct ? R.raw.correct : R.raw.wrong
             );
-w
     if (player == null) return;
 
     player.setVolume(1.0f, 1.0f);
