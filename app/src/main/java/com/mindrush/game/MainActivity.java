@@ -10,6 +10,14 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.*;
 import android.content.SharedPreferences;
+import android.content.Intent;
+import android.net.Uri;
+import android.app.AlertDialog;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import org.json.JSONObject;
 import java.util.*;
 
 public class MainActivity extends Activity {
@@ -192,10 +200,72 @@ public class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
+        checkForUpdate();
         save=getSharedPreferences("sef_tasty_save",MODE_PRIVATE);
         stage=Math.max(1,Math.min(100,save.getInt("stage",1)));
         score=save.getInt("score",0);
         home();
+    }
+
+
+    void checkForUpdate() {
+        new Thread(() -> {
+            try {
+                URL url = new URL("https://raw.githubusercontent.com/anbda319-arch/MindRush/main/update/update.json");
+                HttpURLConnection c = (HttpURLConnection) url.openConnection();
+                c.setConnectTimeout(8000);
+                c.setReadTimeout(8000);
+                c.setRequestMethod("GET");
+
+                BufferedReader r = new BufferedReader(
+                        new InputStreamReader(c.getInputStream())
+                );
+
+                StringBuilder json = new StringBuilder();
+                String line;
+                while ((line = r.readLine()) != null) json.append(line);
+                r.close();
+                c.disconnect();
+
+                JSONObject data = new JSONObject(json.toString());
+                int onlineVersion = data.getInt("versionCode");
+                String name = data.optString("versionName", "");
+                String message = data.optString("message", "يوجد تحديث جديد للعبة");
+                String downloadUrl = data.optString("downloadUrl", "");
+
+                int currentVersion =
+                        getPackageManager()
+                                .getPackageInfo(getPackageName(), 0)
+                                .versionCode;
+
+                if (onlineVersion > currentVersion) {
+                    runOnUiThread(() -> {
+                        AlertDialog.Builder dialog =
+                                new AlertDialog.Builder(this);
+
+                        dialog.setTitle("تحديث جديد " + name);
+                        dialog.setMessage(message);
+
+                        if (!downloadUrl.isEmpty()) {
+                            dialog.setPositiveButton("تحديث", (d, w) -> {
+                                try {
+                                    startActivity(new Intent(
+                                            Intent.ACTION_VIEW,
+                                            Uri.parse(downloadUrl)
+                                    ));
+                                } catch (Exception ignored) {}
+                            });
+                        }
+
+                        dialog.setNegativeButton("لاحقًا", null);
+                        dialog.show();
+                    });
+                }
+
+            } catch (Exception ignored) {
+                // لو مفيش إنترنت أو ملف التحديث غير متاح، اللعبة تكمل عادي
+            }
+        }).start();
     }
 
     GradientDrawable shape(int color) {
