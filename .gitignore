@@ -1,0 +1,11 @@
+.gradle/
+build/
+app/build/
+local.properties
+*.apk
+*.aab
+gradle-*/
+*.zip
+termux-packages/
+MainActivity.backup.java
+sef_icons/

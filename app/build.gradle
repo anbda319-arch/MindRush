@@ -1,0 +1,16 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.mindrush.game'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.mindrush.game'
+        minSdk 23
+        targetSdk 34
+        versionCode 2
+        versionName '2.0'
+    }
+}
